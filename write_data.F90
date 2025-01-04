@@ -562,11 +562,11 @@ subroutine write_to_file_latlon(localpet,nmeshes,input_bundle,output_file)
 !  if(ESMF_logFoundError(rcToCheck=error,msg=ESMF_LOGERR_PASSTHRU,line=__LINE__,file=__FILE__)) &
 !     call error_handler("IN FieldGather", error)
    if (localpet ==0) then
-      dum2dt(:,:,1) = lons_output_grid
-      error = nf90_put_var( ncidout, id_lon, dum2dt, count=(/i_target,j_target,1/))
-      call netcdf_err(error, 'WRITING LONGITUDE RECORD' )
-      write(*,*)dum2dt
-      write(*,*)''
+      do k = 1,nmeshes
+         dum2dt(:,:,1) = lons_output_grid
+         error = nf90_put_var( ncidout, id_lon, dum2dt, start=(/1,1,k/), count=(/i_target,j_target,1/))
+         call netcdf_err(error, 'WRITING LONGITUDE RECORD' )
+      enddo
    endif
 
    ! latitude
@@ -575,11 +575,11 @@ subroutine write_to_file_latlon(localpet,nmeshes,input_bundle,output_file)
 !  if(ESMF_logFoundError(rcToCheck=error,msg=ESMF_LOGERR_PASSTHRU,line=__LINE__,file=__FILE__)) &
 !     call error_handler("IN FieldGather", error)
    if (localpet ==0) then
-      dum2dt(:,:,1) = lats_output_grid
-      error = nf90_put_var( ncidout, id_lat, dum2dt,count=(/i_target,j_target,1/))
-      call netcdf_err(error, 'WRITING LATITUDE RECORD' )
-      write(*,*)dum2dt
-      write(*,*)''
+      do k = 1,nmeshes
+         dum2dt(:,:,1) = lats_output_grid
+         error = nf90_put_var( ncidout, id_lat, dum2dt, start=(/1,1,k/), count=(/i_target,j_target,1/))
+         call netcdf_err(error, 'WRITING LATITUDE RECORD' )
+      enddo
    endif
 
    !times

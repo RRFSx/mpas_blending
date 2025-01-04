@@ -41,7 +41,8 @@ integer, public            :: nlat = -1 ! Number of latitude points on output la
 integer, public            :: nlon = -1 ! Number of longitude points on output lat-lon grid
 real, public               :: lat_ll = -1.0 ! Latitude (degrees) of lower left corner of output lat-lon grid
 real, public               :: lon_ll = -1.0 ! Longitude (degrees) of lower left corner of output lat-lon grid
-real, public               :: dx_in_degrees = -9999. ! Horizontal grid spacing (degrees) of output lat-lon grid
+real, public               :: dx_in_degrees = -9999. ! Horizontal grid spacing (degrees) for longitude in the output lat-lon grid
+real, public               :: dy_in_degrees = -9999. ! Horizontal grid spacing (degrees) for latitude  in output lat-lon grid
 
 ! Public subroutines
 public :: read_setup_namelist
@@ -54,7 +55,7 @@ namelist /share/ large_scale_file, small_scale_file, output_blended_filename, &
          smooth_going_downscale, smoother_dimensionless_coefficient
 
 namelist /latlon_output/ output_latlon_grid, is_regional, extrap_method_latlon, &
-                         nlat, nlon, lat_ll, lon_ll, dx_in_degrees
+                         nlat, nlon, lat_ll, lon_ll, dx_in_degrees, dy_in_degrees
 
 contains
 
@@ -89,6 +90,12 @@ subroutine read_setup_namelist(filename,localpet)
    else
      LogType = ESMF_LOGKIND_NONE
    endif 
+
+   ! Set dy to dx if dx is set but dy isn't
+   if ( dy_in_degrees == -9999. ) then
+      dy_in_degrees = dx_in_degrees
+      if (localpet == 0 ) write(*,*)'setting dy_in_degrees to dx_in_degrees = ',dy_in_degrees
+   endif
 
 end subroutine read_setup_namelist
 

@@ -8,7 +8,7 @@ use utils_mod, only      : error_handler, sphere_distance, nearest_cell, mark_ne
 use mpas_netcdf_interface, only : open_netcdf, close_netcdf, get_netcdf_dims, &
                                   get_netcdf_var, netcdf_err
 use program_setup, only  : nvars_to_blend, &
-                           nlat, nlon, lat_ll, lon_ll, dx_in_degrees, &
+                           nlat, nlon, lat_ll, lon_ll, dx_in_degrees, dy_in_degrees, &
                            is_regional, output_latlon_grid
                            
 implicit none
@@ -314,7 +314,7 @@ subroutine define_grid_latlon(localpet,npets)
    integer                      :: ip1_input, jp1_input
    integer                      :: error
    integer                      :: clb(2), cub(2), starts(2), counts(2)
-   real(esmf_kind_r8)           :: half_dx_in_degrees
+   real(esmf_kind_r8)           :: half_dx_in_degrees, half_dy_in_degrees
    real(esmf_kind_r8), allocatable :: templat(:), templon(:)
    real(esmf_kind_r8), pointer     :: lat_src_ptr(:,:), lon_src_ptr(:,:), &
                                       clat_src_ptr(:,:), clon_src_ptr(:,:)
@@ -328,7 +328,7 @@ subroutine define_grid_latlon(localpet,npets)
       templon(i) = lon_ll + dx_in_degrees*(i-1)
    enddo
    do j = 1,j_input
-      templat(j) = lat_ll + dx_in_degrees*(j-1)
+      templat(j) = lat_ll + dy_in_degrees*(j-1)
    enddo
    if(localpet==0) print*,"- I/J DIMENSIONS OF OUTPUT LAT/LON FILE ", i_input, j_input
    if(localpet==0) write(*,*)'min/max lat',minval(templat),maxval(templat)
@@ -463,21 +463,22 @@ subroutine define_grid_latlon(localpet,npets)
    !print *,localpet, clb(1), cub(1), clb(2), cub(2)
 
    half_dx_in_degrees = 0.5*dx_in_degrees
+   half_dy_in_degrees = 0.5*dy_in_degrees
 
    do j = clb(2),cub(2)
      do i = clb(1), cub(1)
        if ( i .eq. ip1_input .and. j .eq. jp1_input ) then ! top-right corner
           clon_src_ptr(i,j)=real(templon(i_input)+half_dx_in_degrees,esmf_kind_r8)
-          clat_src_ptr(i,j)=real(templat(j_input)+half_dx_in_degrees,esmf_kind_r8)
+          clat_src_ptr(i,j)=real(templat(j_input)+half_dy_in_degrees,esmf_kind_r8)
        else if ( i .eq. ip1_input ) then ! points on right edge
           clon_src_ptr(i,j)=real(templon(i_input)+half_dx_in_degrees,esmf_kind_r8)
-          clat_src_ptr(i,j)=real(templat(j)-half_dx_in_degrees,esmf_kind_r8)
+          clat_src_ptr(i,j)=real(templat(j)-half_dy_in_degrees,esmf_kind_r8)
        else if ( j .eq. jp1_input ) then ! points on top edge
           clon_src_ptr(i,j)=real(templon(i)-half_dx_in_degrees,esmf_kind_r8)
-          clat_src_ptr(i,j)=real(templat(j_input)+half_dx_in_degrees,esmf_kind_r8)
+          clat_src_ptr(i,j)=real(templat(j_input)+half_dy_in_degrees,esmf_kind_r8)
        else ! all other points
           clon_src_ptr(i,j)=real(templon(i)-half_dx_in_degrees,esmf_kind_r8)
-          clat_src_ptr(i,j)=real(templat(j)-half_dx_in_degrees,esmf_kind_r8)
+          clat_src_ptr(i,j)=real(templat(j)-half_dy_in_degrees,esmf_kind_r8)
        endif
        if (clon_src_ptr(i,j) > 360.0_esmf_kind_r8) clon_src_ptr(i,j) = clon_src_ptr(i,j) - 360.0_esmf_kind_r8
        if (clon_src_ptr(i,j) <   0.0_esmf_kind_r8) clon_src_ptr(i,j) = clon_src_ptr(i,j) + 360.0_esmf_kind_r8

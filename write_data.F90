@@ -6,7 +6,7 @@ use mpi
 use utils_mod,     only : error_handler
 use program_setup, only : variables_to_blend, &
                           nlat, nlon, lat_ll, lon_ll, &
-                          nvars_to_blend, dx_in_degrees, &
+                          nvars_to_blend, dx_in_degrees, dy_in_degrees, &
                           large_scale_file, output_blended_edge_normal_wind !, valid_time
 use model_grid, only  : mpas_mesh_type, &
                         lons_output_grid, lats_output_grid, &
@@ -429,6 +429,8 @@ subroutine write_to_file_latlon(localpet,nmeshes,input_bundle,output_file)
 
       error = nf90_put_att(ncidout, NF90_GLOBAL, 'DX', dx_in_degrees)
       call netcdf_err(error, 'DEFINING DX GLOBAL ATTRIBUTE')
+      error = nf90_put_att(ncidout, NF90_GLOBAL, 'DY', dy_in_degrees)
+      call netcdf_err(error, 'DEFINING DY GLOBAL ATTRIBUTE')
 
       !--- define variables
       do i = 1,nvars_to_blend
@@ -563,6 +565,8 @@ subroutine write_to_file_latlon(localpet,nmeshes,input_bundle,output_file)
       dum2dt(:,:,1) = lons_output_grid
       error = nf90_put_var( ncidout, id_lon, dum2dt, count=(/i_target,j_target,1/))
       call netcdf_err(error, 'WRITING LONGITUDE RECORD' )
+      write(*,*)dum2dt
+      write(*,*)''
    endif
 
    ! latitude
@@ -574,6 +578,8 @@ subroutine write_to_file_latlon(localpet,nmeshes,input_bundle,output_file)
       dum2dt(:,:,1) = lats_output_grid
       error = nf90_put_var( ncidout, id_lat, dum2dt,count=(/i_target,j_target,1/))
       call netcdf_err(error, 'WRITING LATITUDE RECORD' )
+      write(*,*)dum2dt
+      write(*,*)''
    endif
 
    !times

@@ -13,7 +13,7 @@ use model_grid, only  : mpas_mesh_type, &
                         grid_files_heirarchy
 use input_data, only  : nVertLevelsPerVariable, &
                         nz_input, nzp1_input, nsoil_input
-use mpas_netcdf_interface, only : netcdf_err, open_netcdf, close_netcdf, get_netcdf_var
+use mpas_netcdf_interface, only : netcdf_err, open_netcdf, close_netcdf, get_netcdf_var, get_netcdf_dims
 
 implicit none
 
@@ -41,7 +41,8 @@ subroutine write_to_file(localpet,mpas_mesh,input_bundle,get_metadata_from_templ
    integer                          :: error, ncidin, ncidout, rc, i, nz, f
    integer                          :: header_buffer_val = 16384
    integer                          :: dim_time, dim_z, dim_zp1, dim_soil, my_dim_z
-   integer                          :: dim_ncells, nCells, ncid, dim_nedges
+   integer                          :: dim_ncells, nCells, nEdges, ncid, dim_nedges
+   integer                          :: nCells_test, nEdges_test
    integer                          :: id_lat, id_lon, id_times, id_var, id_var2, id_mask
    integer                          :: id_dim, ndims, nvars, ngatts,unlimdimid
    integer                          :: idims,dimsval,ivars,idims2,igatts
@@ -52,9 +53,10 @@ subroutine write_to_file(localpet,mpas_mesh,input_bundle,get_metadata_from_templ
    integer, allocatable             :: edgesOnCell(:,:),cellsOnEdge(:,:)
    real, allocatable                :: zonal(:,:), meridional(:,:), edge_normal_wind(:,:)
    real, allocatable                :: edgeNormalVectors(:,:)
-   character(len=500)               :: fnames(2)
+   character(len=500)               :: fnames(3)
 
    nCells = mpas_mesh%nCells
+   nEdges = mpas_mesh%nEdges
 
    if (localpet == 0) then
 
@@ -206,7 +208,7 @@ subroutine write_to_file(localpet,mpas_mesh,input_bundle,get_metadata_from_templ
            !print*, "- WRITE TO FILE ", trim(varname)
             dum1dt(:,1) = dum1d
             error = nf90_inq_varid(ncidout, trim(adjustl(varname)), id_var2)
-            call netcdf_err(error, 'Getting ID')
+            call netcdf_err(error, 'Getting ID for '//trim(adjustl(varname)) )
             error = nf90_put_var( ncidout, id_var2, dum1dt, count=(/nCells,1/) )
             call netcdf_err(error, 'WRITING RECORD')
          endif
@@ -232,7 +234,7 @@ subroutine write_to_file(localpet,mpas_mesh,input_bundle,get_metadata_from_templ
            !print*, "- WRITE TO FILE ", trim(varname)
             dum2dt(:,:,1) = transpose(dum2d)
             error = nf90_inq_varid( ncidout, trim(adjustl(varname)), id_var2)
-            call netcdf_err(error, 'Getting ID')
+            call netcdf_err(error, 'Getting ID for '//trim(adjustl(varname)) )
             error = nf90_put_var( ncidout, id_var2, dum2dt, count=(/nz,nCells,1/) )
             call netcdf_err(error, 'WRITING RECORD' )
          endif
@@ -322,7 +324,7 @@ subroutine write_to_file(localpet,mpas_mesh,input_bundle,get_metadata_from_templ
       call get_netcdf_var(ncid,'cellsOnEdge',(/1,1/),(/2,mpas_mesh%nEdges/),cellsOnEdge)
       call close_netcdf(trim(grid_files_heirarchy(1)),ncid)
 
-      ! open the file with blended data that we  just wrote
+      ! open the file that we just wrote (probably has blended data)
       !  for reading only. get data, then close it.
       call open_netcdf(trim(output_file),ncid)
       call get_netcdf_var(ncid,'uReconstructZonal',(/1,1/),(/nz_input,nCells/),zonal)
@@ -334,10 +336,10 @@ subroutine write_to_file(localpet,mpas_mesh,input_bundle,get_metadata_from_templ
       !  in static.nc and init.nc file types.  We can try to get it from a file. Otherwise,
       !  we need to derive it
 
-      ! try large_scale_file and grid_files_heirarchy(1)
+      ! try file_template, large_scale_file, and grid_files_heirarchy(1)
       found_it = .false.
-      fnames = (/large_scale_file, grid_files_heirarchy(1) /)
-      do f = 1,2
+      fnames = (/ file_template, large_scale_file, grid_files_heirarchy(1) /)
+      do f = 1,3
          call open_netcdf(trim(fnames(f)),ncid)
          error = nf90_inq_varid(ncid, 'edgeNormalVectors', id_var)
          if ( error == 0 ) then

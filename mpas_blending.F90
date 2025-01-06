@@ -313,12 +313,14 @@ if ( output_intermediate_files_up ) then
       write(cell_dx,fmt='(f5.1)') nominal_horizontal_cell_spacing(i)
       my_output_name = 'mpas_mesh_largeScaleData_goingUp_'//trim(adjustl(cell_dx))//'km.nc'
       call write_to_file(localpet, mpas_meshes(i), large_scale_data_going_up(i), .false., large_scale_file, my_output_name)
-      my_output_name = 'mpas_mesh_smallScaleData_goingUp_'//trim(adjustl(cell_dx))//'km.nc'
-      call write_to_file(localpet, mpas_meshes(i), small_scale_data_going_up(i), .false., large_scale_file, my_output_name)
-      if ( average_upscale_before_interp .and. ( i .lt. nmeshes) ) then ! spatially smoothed/averaged fields only 1:nmeshes-1
-         my_output_name = 'mpas_mesh_largeScaleData_goingUp_avg_'//trim(adjustl(cell_dx))//'km.nc'
-         call write_to_file(localpet, mpas_meshes(i), large_scale_data_going_up_avg(i), .false., large_scale_file, my_output_name)
+      if ( large_scale_file .ne. small_scale_file ) then
+         my_output_name = 'mpas_mesh_smallScaleData_goingUp_'//trim(adjustl(cell_dx))//'km.nc'
+         call write_to_file(localpet, mpas_meshes(i), small_scale_data_going_up(i), .false., large_scale_file, my_output_name)
       endif
+     !if ( average_upscale_before_interp .and. ( i .lt. nmeshes) ) then ! spatially smoothed/averaged fields only 1:nmeshes-1
+     !   my_output_name = 'mpas_mesh_largeScaleData_goingUp_avg_'//trim(adjustl(cell_dx))//'km.nc'
+     !   call write_to_file(localpet, mpas_meshes(i), large_scale_data_going_up_avg(i), .false., large_scale_file, my_output_name)
+     !endif
    enddo
 
    ! Output 1 file containing all the meshes interpolated to the same lat-lon grid
@@ -331,11 +333,13 @@ if ( output_intermediate_files_up ) then
       call write_to_file_latlon(localpet,nmeshes,latlon_bundle, my_output_name)
 
       ! Then output data from file providing small scales. Need to interpolate the data onto lat-lon grid first.
-      do i = 1,nmeshes
-         call interp_data(localpet, rh_latlon(i), small_scale_data_going_up(i), latlon_bundle(i))
-      enddo
-      my_output_name = 'latlon_mesh_smallScaleData_goingUp_'//trim(adjustl(cell_degrees))//'degrees.nc'
-      call write_to_file_latlon(localpet,nmeshes,latlon_bundle, my_output_name)
+      if ( large_scale_file .ne. small_scale_file ) then
+         do i = 1,nmeshes
+            call interp_data(localpet, rh_latlon(i), small_scale_data_going_up(i), latlon_bundle(i))
+         enddo
+         my_output_name = 'latlon_mesh_smallScaleData_goingUp_'//trim(adjustl(cell_degrees))//'degrees.nc'
+         call write_to_file_latlon(localpet,nmeshes,latlon_bundle, my_output_name)
+      endif
    endif
 endif
 

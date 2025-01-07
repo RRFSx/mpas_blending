@@ -9,6 +9,7 @@ use program_setup, only  : LogType, read_setup_namelist,  &
                            large_scale_file, small_scale_file, grid_info_file, &
                            average_upscale_before_interp, &
                            output_intermediate_files_up, output_intermediate_files_down, &
+                           output_upscaled_data_on_native_mesh, &
                            interp_method, extrap_method, extrap_method_latlon, output_latlon_grid, &
                            output_blended_filename, dx_in_degrees, nvars_to_blend, &
                            smooth_going_downscale, smoother_dimensionless_coefficient
@@ -48,6 +49,7 @@ type(esmf_fieldbundle), allocatable :: latlon_bundle(:)
 type(esmf_fieldbundle), allocatable :: blending_bundle(:)
 type(esmf_fieldbundle), allocatable :: large_scale_data_going_up_avg(:)
 type(esmf_fieldbundle), allocatable :: small_scale_data_going_up_avg(:)
+type(esmf_fieldbundle) :: bundle_for_interp_to_native_mesh
 
 !------------------
 ! Initialize mpi
@@ -341,6 +343,27 @@ if ( output_intermediate_files_up ) then
          call write_to_file_latlon(localpet,nmeshes,latlon_bundle, my_output_name)
       endif
    endif
+
+   if ( output_upscaled_data_on_native_mesh ) then
+      call define_bundle(localpet,meshes(1),bundle_for_interp_to_native_mesh) ! output is bundle_for_interp_to_native_mesh
+      do i = 2,nmeshes
+         write(cell_dx,fmt='(f5.1)') nominal_horizontal_cell_spacing(i)
+         call make_rh(localpet, large_scale_data_going_up(i), bundle_for_interp_to_native_mesh, &
+                    trim(adjustl(interp_method)), trim(adjustl(extrap_method)), rh, unmappedDstList)
+         call interp_data(localpet, rh, large_scale_data_going_up(i), bundle_for_interp_to_native_mesh)
+         ! output file. We can use large_scale_file (on the native mesh) as the template
+         my_output_name = 'mpas_mesh_largeScaleData_goingUp_onNativeMesh_'//trim(adjustl(cell_dx))//'km.nc'
+         call write_to_file(localpet, mpas_meshes(1), bundle_for_interp_to_native_mesh, .true., large_scale_file, my_output_name)
+         if ( large_scale_file .ne. small_scale_file ) then
+            call interp_data(localpet, rh, small_scale_data_going_up(i), bundle_for_interp_to_native_mesh)
+            my_output_name = 'mpas_mesh_smallScaleData_goingUp_onNativeMesh_'//trim(adjustl(cell_dx))//'km.nc'
+            call write_to_file(localpet, mpas_meshes(1), bundle_for_interp_to_native_mesh, .true., small_scale_file, my_output_name)
+         endif
+         call destroy_rh(rh)
+      enddo
+      call cleanup_bundle(bundle_for_interp_to_native_mesh)
+   endif
+
 endif
 
 ! Given that processes might have been writing, sync up before printing

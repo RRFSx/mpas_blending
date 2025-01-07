@@ -28,6 +28,7 @@ character(len=500), public  :: variables_to_blend(nvars_max) = "NULL" ! netCDF v
 logical, public             :: average_upscale_before_interp = .false. ! If true, average to the next coarsest mesh before interpolating to that mesh
 logical, public             :: output_intermediate_files_up = .false. ! If true, output a file for each intermediate mesh when progressively upscaling
 logical, public             :: output_intermediate_files_down = .false. ! If true, output a file for each intermediate mesh when progressively downscaling
+logical, public             :: output_upscaled_data_on_native_mesh = .false. ! If true, output a file for each intermediate mesh interpolated onto the original native mesh
 logical, public             :: output_blended_edge_normal_wind = .false. ! If true, output blended edge normal wind (u)
 logical, public             :: esmf_log = .false. ! logging information
 logical, public             :: smooth_going_downscale = .false. ! If true, run a smoother after interpolating downscale when reconstructing fields
@@ -51,7 +52,7 @@ public :: read_setup_namelist
 namelist /share/ large_scale_file, small_scale_file, output_blended_filename, &
          variables_to_blend, grid_info_file, interp_method, extrap_method, &
          extrap_num_levels_creep, average_upscale_before_interp, output_intermediate_files_up, &
-         output_intermediate_files_down, output_blended_edge_normal_wind, esmf_log, &
+         output_intermediate_files_down, output_upscaled_data_on_native_mesh, output_blended_edge_normal_wind, esmf_log, &
          smooth_going_downscale, smoother_dimensionless_coefficient
 
 namelist /latlon_output/ output_latlon_grid, is_regional, extrap_method_latlon, &

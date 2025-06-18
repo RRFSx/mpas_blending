@@ -32,7 +32,8 @@ integer                   :: num_unmapped, num_unmapped_tot, my_num_unmapped
 integer, allocatable      :: dstStatus(:), my_dstStatus(:)
 real                      :: w1, w2
 character(len=500)        :: my_output_name
-character(len=5)          :: cell_dx, cell_degrees, iii
+character(len=7)          :: cell_dx
+character(len=5)          :: cell_degrees, iii
 type(esmf_vm)             :: vm
 type(esmf_fieldbundle), allocatable :: tmp_bundle(:)
 type(ESMF_RouteHandle)              :: rh
@@ -312,7 +313,7 @@ if ( output_intermediate_files_up ) then
    ! In write_to_file, .false. means define the output mesh from input data and the next entry is ignored.
    !  If it's .true., then the next entry provides a template for the output file
    do i = 1, nmeshes
-      write(cell_dx,fmt='(f5.1)') nominal_horizontal_cell_spacing(i)
+      write(cell_dx,fmt='(f7.1)') nominal_horizontal_cell_spacing(i)
       my_output_name = 'mpas_mesh_largeScaleData_goingUp_'//trim(adjustl(cell_dx))//'km.nc'
       call write_to_file(localpet, mpas_meshes(i), large_scale_data_going_up(i), .false., large_scale_file, my_output_name)
       if ( large_scale_file .ne. small_scale_file ) then
@@ -347,7 +348,7 @@ if ( output_intermediate_files_up ) then
    if ( output_upscaled_data_on_native_mesh ) then
       call define_bundle(localpet,meshes(1),bundle_for_interp_to_native_mesh) ! output is bundle_for_interp_to_native_mesh
       do i = 2,nmeshes
-         write(cell_dx,fmt='(f5.1)') nominal_horizontal_cell_spacing(i)
+         write(cell_dx,fmt='(f7.1)') nominal_horizontal_cell_spacing(i)
          call make_rh(localpet, large_scale_data_going_up(i), bundle_for_interp_to_native_mesh, &
                     trim(adjustl(interp_method)), trim(adjustl(extrap_method)), rh, unmappedDstList)
          call interp_data(localpet, rh, large_scale_data_going_up(i), bundle_for_interp_to_native_mesh)
@@ -491,7 +492,7 @@ endif
 !-----------------------------------------
 if ( output_intermediate_files_down ) then
    do i = 1, nmeshes-1
-      write(cell_dx,fmt='(f5.1)') nominal_horizontal_cell_spacing(i)
+      write(cell_dx,fmt='(f7.1)') nominal_horizontal_cell_spacing(i)
       my_output_name = 'mpas_mesh_largeScalePerts_'//trim(adjustl(cell_dx))//'km.nc'
       call write_to_file(localpet, mpas_meshes(i), large_scale_data_perts(i), .false., large_scale_file, my_output_name)
    enddo

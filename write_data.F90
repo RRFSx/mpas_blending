@@ -344,12 +344,19 @@ subroutine write_to_file(localpet,mpas_mesh,input_bundle,get_metadata_from_templ
          error = nf90_inq_varid(ncid, 'edgeNormalVectors', id_var)
          if ( error == 0 ) then
             call get_netcdf_var(ncid,'edgeNormalVectors',(/1,1/),(/3,mpas_mesh%nEdges/),edgeNormalVectors)
-            found_it = .true.
+            ! make sure the values aren't 0 everywhere
+            if ( all(edgeNormalVectors .eq. 0)) then
+               write(*,*)'found edgeNormalVectors from '//trim(fnames(f))//' but it is everywhere 0 '
+            else
+               found_it = .true. ! we found valid data!
+               write(*,*)'got edgeNormalVectors from '//trim(fnames(f))
+            endif
          endif
          call close_netcdf(trim(fnames(f)),ncid)
          if ( found_it ) exit ! get out of loop
       enddo
       if ( .not. found_it ) then ! we have to derive it :(
+         write(*,*)'deriving edgeNormalVectors'
          call derive_edgeNormalVectors(grid_files_heirarchy(1), mpas_mesh, cellsOnEdge, edgeNormalVectors)
       endif
 

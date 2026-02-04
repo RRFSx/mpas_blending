@@ -704,12 +704,12 @@ subroutine derive_edgeNormalVectors(fname, mpas_mesh, cellsOnEdge, edgeNormalVec
       cell1 = cellsOnEdge(1,iEdge)
       cell2 = cellsOnEdge(2,iEdge)
 
-      if (cell1 == nCells+1) then ! this is a boundary edge
+      if ( (cell1 == nCells+1) .or. (cell1 == 0) ) then ! this is a boundary edge ! CSS added cell1 == 0 condition
         ! the normal points from the edge location to the cell location
          edgeNormalVectors(1,iEdge) = xCell(cell2) - xEdge(iEdge)
          edgeNormalVectors(2,iEdge) = yCell(cell2) - yEdge(iEdge)
          edgeNormalVectors(3,iEdge) = zCell(cell2) - zEdge(iEdge)
-      else if (cell2 == nCells+1) then ! this is a boundary edge
+      else if ( (cell2 == nCells+1) .or. (cell2 == 0) ) then ! this is a boundary edge ! CSS added cell2 == 0 condition
         ! the normal points from the cell location to the edge location
          edgeNormalVectors(1,iEdge) = xEdge(iEdge) - xCell(cell1)
          edgeNormalVectors(2,iEdge) = yEdge(iEdge) - yCell(cell1)

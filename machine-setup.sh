@@ -16,10 +16,9 @@ else
     __ms_shell=sh
 fi
 
-target=""
-USERNAME=`echo $LOGNAME | awk '{ print tolower($0)'}`
+target=${target:-""}
 
-if [[ -d /lfs4 ]] ; then
+if [[ -d /lfs5 || -d /lfs6 ]] ; then
     # We are on NOAA Jet
     if ( ! eval module help > /dev/null 2>&1 ) ; then
         echo load the module command 1>&2
@@ -27,13 +26,17 @@ if [[ -d /lfs4 ]] ; then
     fi
     target=jet
     module purge
-elif [[ -d /scratch1 ]] ; then
-    # We are on NOAA Hera
+elif [[ -d /scratch3 || -d /scratch4 ]] ; then
+    # We are on NOAA Hera or Ursa
     if ( ! eval module help > /dev/null 2>&1 ) ; then
         echo load the module command 1>&2
         source /apps/lmod/lmod/init/$__ms_shell
     fi
-    target=hera
+    if [[ -d /apps/slurm_hera ]]; then
+      target=hera
+    else
+      target=ursa
+    fi
     module purge
 elif [[ -d /gpfs/hps && -e /etc/SuSE-release ]] ; then
     # We are on NOAA Luna or Surge
@@ -77,55 +80,24 @@ elif [[ -L /usrx && "$( readlink /usrx 2> /dev/null )" =~ dell ]] ; then
     fi
     target=wcoss_dell_p3
     module purge
+elif [[ "$(hostname)" == derecho* ]]; then
+    target=derecho
+    module purge
 elif [[ -d /glade ]] ; then
-    # We are on NCAR Derecho
+    # We are on NCAR Cheyenne
     if ( ! eval module help > /dev/null 2>&1 ) ; then
         echo load the module command 1>&2
-       #. /glade/u/apps/ch/opt/lmod/8.1.7/lmod/8.1.7/init/sh # cheyenne
-        . /glade/u/apps/derecho/23.09/spack/opt/spack/lmod/8.7.24/gcc/7.5.0/c645/lmod/lmod/init/sh # derecho
+        . /glade/u/apps/ch/opt/lmod/8.1.7/lmod/8.1.7/init/sh
     fi
-    target=derecho # okay for now, should be derecho
-   #module purge
-elif [[ -d /lustre && -d /ncrc ]] ; then
-    # We are on GAEA.
-    if ( ! eval module help > /dev/null 2>&1 ) ; then
-        # We cannot simply load the module command.  The GAEA
-        # /etc/profile modifies a number of module-related variables
-        # before loading the module command.  Without those variables,
-        # the module command fails.  Hence we actually have to source
-        # /etc/profile here.
-        source /etc/profile
-        __ms_source_etc_profile=yes
-    else
-        __ms_source_etc_profile=no
-    fi
-    module purge > /dev/null 2>&1
+    target=cheyenne
     module purge
-# clean up after purge
-    unset _LMFILES_
-    unset _LMFILES_000
-    unset _LMFILES_001
-    unset LOADEDMODULES
-    module load modules
-    if [[ -d /opt/cray/ari/modulefiles ]] ; then
-        module use -a /opt/cray/ari/modulefiles
-    fi
-    if [[ -d /opt/cray/pe/ari/modulefiles ]] ; then
-        module use -a /opt/cray/pe/ari/modulefiles
-    fi
-    if [[ -d /opt/cray/pe/craype/default/modulefiles ]] ; then
-        module use -a /opt/cray/pe/craype/default/modulefiles
-    fi
-    if [[ -s /etc/opt/cray/pe/admin-pe/site-config ]] ; then
-        source /etc/opt/cray/pe/admin-pe/site-config
-    fi
-    if [[ "$__ms_source_etc_profile" == yes ]] ; then
-      source /etc/profile
-      unset __ms_source_etc_profile
-    fi
-    target=gaea
-elif [[ "$(hostname)" =~ "Orion" ]]; then
+elif [[ -d /gpfs/f6 ]] ; then
+    target=gaeac6
+elif [[ "$(hostname)" =~ "orion" ]]; then
     target="orion"
+    module purge
+elif [[ "$(hostname)" =~ "hercules" ]]; then
+    target="hercules"
     module purge
 elif [[ "$(hostname)" =~ "ln" ]]; then
     source /scratch/ywang/tools/lmod/lmod/init/bash
@@ -141,6 +113,9 @@ elif [[ -d /data/prod ]] ; then
     fi
     target=s4
     module purge
+elif [[ -d /lfs/h2 ]] ; then
+   target=wcoss2
+   module purge
 else
     echo WARNING: UNKNOWN PLATFORM 1>&2
 fi

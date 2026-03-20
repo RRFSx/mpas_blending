@@ -17,12 +17,12 @@ public :: get_netcdf_var
 
 interface get_netcdf_var
    module procedure get_netcdf_var_1d_integer
-!  module procedure get_netcdf_var_1d_integer_esmf_kind
+!   module procedure get_netcdf_var_1d_integer_esmf_kind !! MLL uncommenting this line
    module procedure get_netcdf_var_1d_real
-   module procedure get_netcdf_var_1d_real_esmf_kind
+!   module procedure get_netcdf_var_1d_real_esmf_kind
    module procedure get_netcdf_var_2d_integer
    module procedure get_netcdf_var_2d_real
-   module procedure get_netcdf_var_2d_real_esmf_kind
+!   module procedure get_netcdf_var_2d_real_esmf_kind
 end interface
 
 ! variables visible to this module only

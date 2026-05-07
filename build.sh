@@ -8,6 +8,10 @@ target=${1:-""}
 compiler=${2:-"intel"}
 debug=${3:-"false"}
 
+if [[ "${MACHINE:-''}" == "hostgeneric" ]]; then
+  target=hostgeneric
+fi
+
 # If target is not set
 if [[ "$target" == "" ]]; then
     source ./machine-setup.sh

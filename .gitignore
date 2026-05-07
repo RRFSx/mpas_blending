@@ -33,3 +33,4 @@ bin
 *.exe
 *.out
 *.app
+modulefiles/build.hostgeneric.intel.lua

@@ -1,5 +1,5 @@
 help([[
-This module loads libraries for MPASSIT
+This module loads libraries for MPASBlend
 ]])
 
 whatis([===[Loads libraries for mpassit ]===])

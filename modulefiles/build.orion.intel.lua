@@ -1,8 +1,8 @@
 help([[
-This module loads libraries for MPASSIT
+This module loads libraries for MPASBlend
 ]])
 
-whatis([===[Loads libraries for MPASSIT ]===])
+whatis([===[Loads libraries for MPASBlend ]===])
 prepend_path("MODULEPATH", "/apps/contrib/spack-stack/spack-stack-1.9.3/envs/ue-oneapi-2024.2.1/install/modulefiles/Core")
 
 load("stack-oneapi/2024.2.1")
